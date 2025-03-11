@@ -51,7 +51,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create the task in the database
 	result := DB.Create(&req)
-	fmt.Println("result", &req)
+
 	if result.Error != nil {
 		// Log the error for debugging
 		log.Printf("Database error: %v", result.Error)
