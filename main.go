@@ -60,7 +60,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Failed to create task")
 		return
 	}
-	taskResponse := &req
+	var taskResponse *Task = &req
 
 	// Respond with success
 	respondWithJSON(w, http.StatusCreated, taskResponse)
