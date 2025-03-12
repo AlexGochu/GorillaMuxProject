@@ -60,7 +60,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Failed to create task")
 		return
 	}
-	var taskResponse *Task = &req
+	var taskResponse Task = req
 
 	// Respond with success
 	respondWithJSON(w, http.StatusCreated, taskResponse)
@@ -72,15 +72,7 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			PostHandler(w, r)
-		case http.MethodGet:
-			GetHandler(w, r)
-		default:
-			http.Error(w, "Untreated method:", http.StatusMethodNotAllowed)
-		}
-	})
+	router.HandleFunc("/api", GetHandler).Methods(http.MethodGet)
+	router.HandleFunc("/api", PostHandler).Methods(http.MethodPost)
 	http.ListenAndServe(":8080", router)
 }
