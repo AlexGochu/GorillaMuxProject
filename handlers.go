@@ -144,7 +144,6 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Response with success
-
-	respondWithJSON(w, http.StatusOK, task)
+	// Return 204 No Content
+	w.WriteHeader(http.StatusNoContent)
 }
