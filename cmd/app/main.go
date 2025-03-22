@@ -10,7 +10,7 @@ import (
 
 func main() {
 	database.InitDB()
-	database.DB.AutoMigrate(&taskService.Task{})
+	//database.DB.AutoMigrate(&taskService.Task{})
 	repo := taskService.NewTaskRepository(database.DB)
 	service := taskService.NewService(repo)
 	handler := handlers.NewHandler(service)
