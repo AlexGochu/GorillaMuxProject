@@ -27,13 +27,4 @@ func main() {
 	if err := e.Start(":8080"); err != nil {
 		log.Fatalf("failed to start with err: %v", err)
 	}
-
-	/*router := mux.NewRouter()
-
-	router.HandleFunc("/api/tasks", handler.GetTasksHandler).Methods(http.MethodGet)
-	router.HandleFunc("/api/tasks", handler.PostTaskHandler).Methods(http.MethodPost)
-	router.HandleFunc("/api/tasks/{id}", handler.PatchTaskHandler).Methods(http.MethodPatch)
-	router.HandleFunc("/api/tasks/{id}", handler.DeleteTaskHandler).Methods(http.MethodDelete)
-
-	http.ListenAndServe(":8080", router)*/
 }
