@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/oapi-codegen/runtime"
 	strictecho "github.com/oapi-codegen/runtime/strictmiddleware/echo"
 )
 
@@ -20,8 +21,17 @@ type Task struct {
 	Task   *string `json:"task,omitempty"`
 }
 
+// TaskUpdate defines model for TaskUpdate.
+type TaskUpdate struct {
+	IsDone *bool   `json:"is_done,omitempty"`
+	Task   *string `json:"task,omitempty"`
+}
+
 // PostApiTasksJSONRequestBody defines body for PostApiTasks for application/json ContentType.
 type PostApiTasksJSONRequestBody = Task
+
+// PatchApiTasksIdJSONRequestBody defines body for PatchApiTasksId for application/json ContentType.
+type PatchApiTasksIdJSONRequestBody = TaskUpdate
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -31,6 +41,12 @@ type ServerInterface interface {
 	// Create a new task
 	// (POST /api/tasks)
 	PostApiTasks(ctx echo.Context) error
+	// Delete a task by ID
+	// (DELETE /api/tasks/{id})
+	DeleteApiTasksId(ctx echo.Context, id uint) error
+	// Update a task by ID
+	// (PATCH /api/tasks/{id})
+	PatchApiTasksId(ctx echo.Context, id uint) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -53,6 +69,38 @@ func (w *ServerInterfaceWrapper) PostApiTasks(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostApiTasks(ctx)
+	return err
+}
+
+// DeleteApiTasksId converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteApiTasksId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id uint
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteApiTasksId(ctx, id)
+	return err
+}
+
+// PatchApiTasksId converts echo context to params.
+func (w *ServerInterfaceWrapper) PatchApiTasksId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id uint
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PatchApiTasksId(ctx, id)
 	return err
 }
 
@@ -86,6 +134,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/api/tasks", wrapper.GetApiTasks)
 	router.POST(baseURL+"/api/tasks", wrapper.PostApiTasks)
+	router.DELETE(baseURL+"/api/tasks/:id", wrapper.DeleteApiTasksId)
+	router.PATCH(baseURL+"/api/tasks/:id", wrapper.PatchApiTasksId)
 
 }
 
@@ -122,6 +172,64 @@ func (response PostApiTasks201JSONResponse) VisitPostApiTasksResponse(w http.Res
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteApiTasksIdRequestObject struct {
+	Id uint `json:"id"`
+}
+
+type DeleteApiTasksIdResponseObject interface {
+	VisitDeleteApiTasksIdResponse(w http.ResponseWriter) error
+}
+
+type DeleteApiTasksId204Response struct {
+}
+
+func (response DeleteApiTasksId204Response) VisitDeleteApiTasksIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteApiTasksId404Response struct {
+}
+
+func (response DeleteApiTasksId404Response) VisitDeleteApiTasksIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
+}
+
+type PatchApiTasksIdRequestObject struct {
+	Id   uint `json:"id"`
+	Body *PatchApiTasksIdJSONRequestBody
+}
+
+type PatchApiTasksIdResponseObject interface {
+	VisitPatchApiTasksIdResponse(w http.ResponseWriter) error
+}
+
+type PatchApiTasksId200JSONResponse Task
+
+func (response PatchApiTasksId200JSONResponse) VisitPatchApiTasksIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchApiTasksId400Response struct {
+}
+
+func (response PatchApiTasksId400Response) VisitPatchApiTasksIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type PatchApiTasksId404Response struct {
+}
+
+func (response PatchApiTasksId404Response) VisitPatchApiTasksIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Get all tasks
@@ -130,6 +238,12 @@ type StrictServerInterface interface {
 	// Create a new task
 	// (POST /api/tasks)
 	PostApiTasks(ctx context.Context, request PostApiTasksRequestObject) (PostApiTasksResponseObject, error)
+	// Delete a task by ID
+	// (DELETE /api/tasks/{id})
+	DeleteApiTasksId(ctx context.Context, request DeleteApiTasksIdRequestObject) (DeleteApiTasksIdResponseObject, error)
+	// Update a task by ID
+	// (PATCH /api/tasks/{id})
+	PatchApiTasksId(ctx context.Context, request PatchApiTasksIdRequestObject) (PatchApiTasksIdResponseObject, error)
 }
 
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
@@ -190,6 +304,62 @@ func (sh *strictHandler) PostApiTasks(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(PostApiTasksResponseObject); ok {
 		return validResponse.VisitPostApiTasksResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeleteApiTasksId operation middleware
+func (sh *strictHandler) DeleteApiTasksId(ctx echo.Context, id uint) error {
+	var request DeleteApiTasksIdRequestObject
+
+	request.Id = id
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteApiTasksId(ctx.Request().Context(), request.(DeleteApiTasksIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteApiTasksId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeleteApiTasksIdResponseObject); ok {
+		return validResponse.VisitDeleteApiTasksIdResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PatchApiTasksId operation middleware
+func (sh *strictHandler) PatchApiTasksId(ctx echo.Context, id uint) error {
+	var request PatchApiTasksIdRequestObject
+
+	request.Id = id
+
+	var body PatchApiTasksIdJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchApiTasksId(ctx.Request().Context(), request.(PatchApiTasksIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchApiTasksId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PatchApiTasksIdResponseObject); ok {
+		return validResponse.VisitPatchApiTasksIdResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}

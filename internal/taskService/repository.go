@@ -30,13 +30,27 @@ func (r *taskRepository) GetAllTasks() ([]Task, error) {
 }
 
 func (r *taskRepository) UpdateTaskByID(id uint, task Task) (Task, error) {
-	err := r.db.First(&task, id).Error
+	// Fetch the existing task from the database
+	var existingTask Task
+	err := r.db.First(&existingTask, id).Error
 	if err != nil {
 		return Task{}, err
 	}
-	err = r.db.Save(&task).Error
 
-	return task, err
+	// Update the fields of the existing task
+	if task.Task != "" {
+		existingTask.Task = task.Task
+	}
+	existingTask.IsDone = task.IsDone
+
+	// Save the updated task back to the database
+	err = r.db.Save(&existingTask).Error
+	if err != nil {
+		return Task{}, err
+	}
+
+	// Return the updated task
+	return existingTask, nil
 }
 func (r *taskRepository) DeleteTaskByID(id uint) error {
 	var task Task

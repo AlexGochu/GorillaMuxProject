@@ -35,6 +35,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
+  /api/tasks/{id}:
+    patch:
+      summary: Update a task by ID
+      tags:
+        - tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: uint
+      requestBody:
+        description: The task fields to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: The updated task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+        '400':
+          description: Invalid input
+
+    delete:
+      summary: Delete a task by ID
+      tags:
+        - tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: uint
+      responses:
+        '204':
+          description: Task deleted successfully
+        '404':
+          description: Task not found
 
 components:
   schemas:
@@ -44,6 +91,13 @@ components:
         id:
           type: integer
           format: uint
+        task:
+          type: string
+        is_done:
+          type: boolean
+    TaskUpdate:
+      type: object
+      properties:
         task:
           type: string
         is_done:
