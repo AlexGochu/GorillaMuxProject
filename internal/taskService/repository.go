@@ -11,28 +11,28 @@ type TaskRepository interface {
 	UpdateTaskByID(id uint, task tasks.Task) (tasks.Task, error)
 	DeleteTaskByID(id uint) error
 }
-type taskRepository struct {
+type TaskStructRepository struct {
 	db *gorm.DB
 }
 
-func NewTaskRepository(db *gorm.DB) *taskRepository {
-	return &taskRepository{db: db}
+func NewTaskRepository(db *gorm.DB) *TaskStructRepository {
+	return &TaskStructRepository{db: db}
 }
 
-func (r *taskRepository) CreateTask(task tasks.Task) (tasks.Task, error) {
+func (r *TaskStructRepository) CreateTask(task tasks.Task) (tasks.Task, error) {
 	result := r.db.Create(&task)
 	if result.Error != nil {
 		return tasks.Task{}, result.Error
 	}
 	return task, nil
 }
-func (r *taskRepository) GetAllTasks() ([]tasks.Task, error) {
+func (r *TaskStructRepository) GetAllTasks() ([]tasks.Task, error) {
 	var allTasks []tasks.Task
 	err := r.db.Find(&allTasks).Error
 	return allTasks, err
 }
 
-func (r *taskRepository) UpdateTaskByID(id uint, task tasks.Task) (tasks.Task, error) {
+func (r *TaskStructRepository) UpdateTaskByID(id uint, task tasks.Task) (tasks.Task, error) {
 	// Fetch the existing task from the database
 	var existingTask tasks.Task
 	err := r.db.First(&existingTask, id).Error
@@ -58,7 +58,7 @@ func (r *taskRepository) UpdateTaskByID(id uint, task tasks.Task) (tasks.Task, e
 	// Return the updated task
 	return existingTask, nil
 }
-func (r *taskRepository) DeleteTaskByID(id uint) error {
+func (r *TaskStructRepository) DeleteTaskByID(id uint) error {
 	var task tasks.Task
 	err := r.db.First(&task, id).Error
 	if err != nil {
