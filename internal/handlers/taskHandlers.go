@@ -1,20 +1,13 @@
 package handlers
 
 import (
-	"GorillaMuxProject/internal/taskService" // Импортируем наш сервис
-	"encoding/json"
-	"github.com/gorilla/mux"
-	"gorm.io/gorm"
-	"net/http"
-	"strconv"
+	"GorillaMuxProject/internal/taskService"
+	"GorillaMuxProject/internal/web/tasks"
+	"context"
 )
 
 type Handler struct {
 	Service *taskService.TaskService
-}
-
-type taskRepository struct {
-	db *gorm.DB
 }
 
 func NewHandler(service *taskService.TaskService) *Handler {
@@ -23,65 +16,71 @@ func NewHandler(service *taskService.TaskService) *Handler {
 	}
 }
 
-func (h *Handler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.Service.GetAllTasks()
+func (h *Handler) GetApiTasks(_ context.Context, _ tasks.GetApiTasksRequestObject) (tasks.GetApiTasksResponseObject, error) {
+	//TODO implement me
+	allTasks, err := h.Service.GetAllTasks()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tasks)
-}
-func (h *Handler) PostTaskHandler(w http.ResponseWriter, r *http.Request) {
-	var task taskService.Task
-	err := json.NewDecoder(r.Body).Decode(&task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	response := tasks.GetApiTasks200JSONResponse{}
 
-	createdTask, err := h.Service.CreateTask(task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	for _, tsk := range allTasks {
+		task := tasks.Task{
+			Id:     tsk.Id,
+			Task:   tsk.Task,
+			IsDone: tsk.IsDone,
+		}
+		response = append(response, task)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(createdTask)
+	return response, nil
 }
 
-func (h *Handler) PatchTaskHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+func (h *Handler) PostApiTasks(_ context.Context, request tasks.PostApiTasksRequestObject) (tasks.PostApiTasksResponseObject, error) {
+	taskRequest := request.Body
+	taskToCreate := tasks.Task{
+		Task:   taskRequest.Task,
+		IsDone: taskRequest.IsDone,
+	}
+	createdTask, err := h.Service.CreateTask(taskToCreate)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return nil, err
 	}
-	var task taskService.Task
-	err = json.NewDecoder(r.Body).Decode(&task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	response := tasks.PostApiTasks201JSONResponse{
+		Id:     createdTask.Id,
+		Task:   createdTask.Task,
+		IsDone: createdTask.IsDone,
 	}
-
-	var updatedTask, err1 = h.Service.UpdateTaskByID(uint(id), task)
-	if err1 != nil {
-		http.Error(w, err1.Error(), http.StatusBadRequest)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(updatedTask)
+	return response, nil
 }
-func (h *Handler) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+
+func (h *Handler) PatchApiTasksId(_ context.Context, request tasks.PatchApiTasksIdRequestObject) (tasks.PatchApiTasksIdResponseObject, error) {
+	id := request.Id
+
+	taskRequest := request.Body
+
+	taskToUpdate := tasks.Task{
+		Task:   taskRequest.Task,
+		IsDone: taskRequest.IsDone,
 	}
-	err = h.Service.DeleteTaskByID(uint(id))
+	updatedTask, err := h.Service.UpdateTaskByID(uint(id), taskToUpdate)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		// Return an error response if the update fails
+		return nil, err
 	}
-	w.WriteHeader(http.StatusNoContent)
+	response := tasks.PatchApiTasksId200JSONResponse{
+		Id:     updatedTask.Id,
+		Task:   updatedTask.Task,
+		IsDone: updatedTask.IsDone,
+	}
+	return response, nil
+
+}
+
+func (h *Handler) DeleteApiTasksId(_ context.Context, request tasks.DeleteApiTasksIdRequestObject) (tasks.DeleteApiTasksIdResponseObject, error) {
+	id := request.Id
+	err := h.Service.DeleteTaskByID(uint(id))
+	if err != nil {
+		return nil, err
+	}
+	return tasks.DeleteApiTasksId204Response{}, nil
 }
