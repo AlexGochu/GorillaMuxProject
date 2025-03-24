@@ -26,9 +26,9 @@ func (h *Handler) GetApiTasks(_ context.Context, _ tasks.GetApiTasksRequestObjec
 
 	for _, tsk := range allTasks {
 		task := tasks.Task{
-			Id:     &tsk.ID,
-			Task:   &tsk.Task,
-			IsDone: &tsk.IsDone,
+			Id:     tsk.Id,
+			Task:   tsk.Task,
+			IsDone: tsk.IsDone,
 		}
 		response = append(response, task)
 	}
@@ -37,18 +37,18 @@ func (h *Handler) GetApiTasks(_ context.Context, _ tasks.GetApiTasksRequestObjec
 
 func (h *Handler) PostApiTasks(_ context.Context, request tasks.PostApiTasksRequestObject) (tasks.PostApiTasksResponseObject, error) {
 	taskRequest := request.Body
-	taskToCreate := taskService.Task{
-		Task:   *taskRequest.Task,
-		IsDone: *taskRequest.IsDone,
+	taskToCreate := tasks.Task{
+		Task:   taskRequest.Task,
+		IsDone: taskRequest.IsDone,
 	}
 	createdTask, err := h.Service.CreateTask(taskToCreate)
 	if err != nil {
 		return nil, err
 	}
 	response := tasks.PostApiTasks201JSONResponse{
-		Id:     &createdTask.ID,
-		Task:   &createdTask.Task,
-		IsDone: &createdTask.IsDone,
+		Id:     createdTask.Id,
+		Task:   createdTask.Task,
+		IsDone: createdTask.IsDone,
 	}
 	return response, nil
 }
@@ -58,9 +58,9 @@ func (h *Handler) PatchApiTasksId(_ context.Context, request tasks.PatchApiTasks
 
 	taskRequest := request.Body
 
-	taskToUpdate := taskService.Task{
-		Task:   *taskRequest.Task,
-		IsDone: *taskRequest.IsDone,
+	taskToUpdate := tasks.Task{
+		Task:   taskRequest.Task,
+		IsDone: taskRequest.IsDone,
 	}
 	updatedTask, err := h.Service.UpdateTaskByID(uint(id), taskToUpdate)
 	if err != nil {
@@ -68,9 +68,9 @@ func (h *Handler) PatchApiTasksId(_ context.Context, request tasks.PatchApiTasks
 		return nil, err
 	}
 	response := tasks.PatchApiTasksId200JSONResponse{
-		Id:     &updatedTask.ID,
-		Task:   &updatedTask.Task,
-		IsDone: &updatedTask.IsDone,
+		Id:     updatedTask.Id,
+		Task:   updatedTask.Task,
+		IsDone: updatedTask.IsDone,
 	}
 	return response, nil
 
