@@ -45,35 +45,27 @@ func (h *Handler) PostApiTasks(_ context.Context, request tasks.PostApiTasksRequ
 	if err != nil {
 		return nil, err
 	}
-	response := tasks.PostApiTasks201JSONResponse{
-		Id:     createdTask.Id,
-		Task:   createdTask.Task,
-		IsDone: createdTask.IsDone,
-	}
+	response := tasks.PostApiTasks201JSONResponse(createdTask)
 	return response, nil
 }
 
 func (h *Handler) PatchApiTasksId(_ context.Context, request tasks.PatchApiTasksIdRequestObject) (tasks.PatchApiTasksIdResponseObject, error) {
 	id := request.Id
-
 	taskRequest := request.Body
 
 	taskToUpdate := tasks.Task{
 		Task:   taskRequest.Task,
 		IsDone: taskRequest.IsDone,
 	}
+
 	updatedTask, err := h.Service.UpdateTaskByID(uint(id), taskToUpdate)
 	if err != nil {
-		// Return an error response if the update fails
 		return nil, err
 	}
-	response := tasks.PatchApiTasksId200JSONResponse{
-		Id:     updatedTask.Id,
-		Task:   updatedTask.Task,
-		IsDone: updatedTask.IsDone,
-	}
-	return response, nil
 
+	// Convert the updatedTask directly to the response type
+	response := tasks.PatchApiTasksId200JSONResponse(updatedTask)
+	return response, nil
 }
 
 func (h *Handler) DeleteApiTasksId(_ context.Context, request tasks.DeleteApiTasksIdRequestObject) (tasks.DeleteApiTasksIdResponseObject, error) {
