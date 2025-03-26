@@ -6,17 +6,17 @@ import (
 	"context"
 )
 
-type Handler struct {
+type TaskHandler struct {
 	Service *taskService.TaskService
 }
 
-func NewHandler(service *taskService.TaskService) *Handler {
-	return &Handler{
+func NewTaskHandler(service *taskService.TaskService) *TaskHandler {
+	return &TaskHandler{
 		Service: service,
 	}
 }
 
-func (h *Handler) GetApiTasks(_ context.Context, _ tasks.GetApiTasksRequestObject) (tasks.GetApiTasksResponseObject, error) {
+func (h *TaskHandler) GetApiTasks(_ context.Context, _ tasks.GetApiTasksRequestObject) (tasks.GetApiTasksResponseObject, error) {
 	//TODO implement me
 	allTasks, err := h.Service.GetAllTasks()
 	if err != nil {
@@ -35,7 +35,7 @@ func (h *Handler) GetApiTasks(_ context.Context, _ tasks.GetApiTasksRequestObjec
 	return response, nil
 }
 
-func (h *Handler) PostApiTasks(_ context.Context, request tasks.PostApiTasksRequestObject) (tasks.PostApiTasksResponseObject, error) {
+func (h *TaskHandler) PostApiTasks(_ context.Context, request tasks.PostApiTasksRequestObject) (tasks.PostApiTasksResponseObject, error) {
 	taskRequest := request.Body
 	taskToCreate := tasks.Task{
 		Task:   taskRequest.Task,
@@ -49,7 +49,7 @@ func (h *Handler) PostApiTasks(_ context.Context, request tasks.PostApiTasksRequ
 	return response, nil
 }
 
-func (h *Handler) PatchApiTasksId(_ context.Context, request tasks.PatchApiTasksIdRequestObject) (tasks.PatchApiTasksIdResponseObject, error) {
+func (h *TaskHandler) PatchApiTasksId(_ context.Context, request tasks.PatchApiTasksIdRequestObject) (tasks.PatchApiTasksIdResponseObject, error) {
 	id := request.Id
 	taskRequest := request.Body
 
@@ -68,7 +68,7 @@ func (h *Handler) PatchApiTasksId(_ context.Context, request tasks.PatchApiTasks
 	return response, nil
 }
 
-func (h *Handler) DeleteApiTasksId(_ context.Context, request tasks.DeleteApiTasksIdRequestObject) (tasks.DeleteApiTasksIdResponseObject, error) {
+func (h *TaskHandler) DeleteApiTasksId(_ context.Context, request tasks.DeleteApiTasksIdRequestObject) (tasks.DeleteApiTasksIdResponseObject, error) {
 	id := request.Id
 	err := h.Service.DeleteTaskByID(uint(id))
 	if err != nil {
