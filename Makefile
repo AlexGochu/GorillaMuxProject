@@ -14,7 +14,8 @@ run:
 	go run cmd/app/main.go
 
 gen:
-	oapi-codegen -config openapi/.openapi -include-tags tasks -package tasks openapi/openapi.yaml > ./internal/web/tasks/api.gen.go
+	@if not exist "./internal/web/${ENTITY}" mkdir "./internal/web/${ENTITY}"
+	oapi-codegen -config openapi/.openapi -include-tags ${ENTITY} -package ${ENTITY} openapi/openapi.yaml > ./internal/web/${ENTITY}/api.gen.go
 
 lint:
 	golangci-lint run --out-format=colored-line-number
