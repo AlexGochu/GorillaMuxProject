@@ -2,6 +2,7 @@ package userService
 
 import (
 	"GorillaMuxProject/internal/web/users"
+	"errors"
 	"fmt"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"gorm.io/gorm"
@@ -13,6 +14,7 @@ type UserRepository interface {
 	GetAllUsers() ([]users.User, error)
 	UpdateUserByID(id uint, user users.User) (users.User, error)
 	DeleteUserByID(id uint) error
+	GetTasksByUserID(id uint) ([]users.Task, error)
 }
 type UserStructRepository struct {
 	db *gorm.DB
@@ -93,4 +95,24 @@ func (r *UserStructRepository) DeleteUserByID(id uint) error {
 		return err
 	}
 	return r.db.Delete(&user, id).Error
+}
+func (r *UserStructRepository) GetTasksByUserID(id uint) ([]users.Task, error) {
+	var tasks []users.Task
+
+	// First check if user exists
+	var user users.User
+	if err := r.db.First(&user, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("database error: %v", err)
+	}
+
+	// Using explicit join query
+	err := r.db.Where("user_id = ?", id).Find(&tasks).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch tasks: %v", err)
+	}
+
+	return tasks, nil
 }

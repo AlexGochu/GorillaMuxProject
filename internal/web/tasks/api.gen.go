@@ -19,12 +19,18 @@ type Task struct {
 	Id     *uint   `json:"id,omitempty"`
 	IsDone *bool   `json:"is_done,omitempty"`
 	Task   *string `json:"task,omitempty"`
+
+	// UserId ID of the user who owns this task
+	UserId *uint `json:"user_id,omitempty"`
 }
 
 // TaskUpdate defines model for TaskUpdate.
 type TaskUpdate struct {
 	IsDone *bool   `json:"is_done,omitempty"`
 	Task   *string `json:"task,omitempty"`
+
+	// UserId ID of the user who owns this task
+	UserId *uint `json:"user_id,omitempty"`
 }
 
 // PostApiTasksJSONRequestBody defines body for PostApiTasks for application/json ContentType.
