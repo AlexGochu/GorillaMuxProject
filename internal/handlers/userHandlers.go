@@ -75,3 +75,22 @@ func (h *UserHandler) DeleteApiUsersId(_ context.Context, request users.DeleteAp
 	}
 	return users.DeleteApiUsersId204Response{}, nil
 }
+
+func (h *UserHandler) GetApiUsersUserIdTasks(_ context.Context, request users.GetApiUsersUserIdTasksRequestObject) (users.GetApiUsersUserIdTasksResponseObject, error) {
+	userId := request.UserId
+	tasks, err := h.Service.GetUserTasks(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var response []users.Task
+	for _, tsk := range tasks {
+		user := users.Task{
+			Id:     tsk.Id,
+			Task:   tsk.Task,
+			IsDone: tsk.IsDone,
+		}
+		response = append(response, user)
+	}
+	return users.GetApiUsersUserIdTasks200JSONResponse(response), nil
+}

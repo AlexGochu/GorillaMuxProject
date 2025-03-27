@@ -29,6 +29,7 @@ func (h *TaskHandler) GetApiTasks(_ context.Context, _ tasks.GetApiTasksRequestO
 			Id:     tsk.Id,
 			Task:   tsk.Task,
 			IsDone: tsk.IsDone,
+			UserId: tsk.UserId,
 		}
 		response = append(response, task)
 	}
@@ -40,6 +41,7 @@ func (h *TaskHandler) PostApiTasks(_ context.Context, request tasks.PostApiTasks
 	taskToCreate := tasks.Task{
 		Task:   taskRequest.Task,
 		IsDone: taskRequest.IsDone,
+		UserId: taskRequest.UserId,
 	}
 	createdTask, err := h.Service.CreateTask(taskToCreate)
 	if err != nil {
@@ -56,6 +58,7 @@ func (h *TaskHandler) PatchApiTasksId(_ context.Context, request tasks.PatchApiT
 	taskToUpdate := tasks.Task{
 		Task:   taskRequest.Task,
 		IsDone: taskRequest.IsDone,
+		UserId: taskRequest.UserId,
 	}
 
 	updatedTask, err := h.Service.UpdateTaskByID(uint(id), taskToUpdate)
